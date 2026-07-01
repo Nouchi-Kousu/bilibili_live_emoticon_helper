@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { unsafeWindow } from "$"
     let favWidth: number = $state(0)
     let itemWidth: number = $derived((favWidth - 5) / 6 - 5)
     import { constants } from "./main"
@@ -47,7 +48,7 @@
                         body.append("room_type", "0")
                         body.append("bubble", "0")
                         body.append("dm_type", "1")
-                        fetch("https://api.live.bilibili.com/msg/send", {
+                        unsafeWindow.fetch("https://api.live.bilibili.com/msg/send", {
                             method: "POST",
                             credentials: "include",
                             body,

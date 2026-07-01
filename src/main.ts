@@ -1,14 +1,16 @@
 import { mount } from "svelte"
-import { GM_cookie } from "$"
+// 使用 unsafeWindow 来访问全局对象，避免油猴沙箱代理导致无法正确挂载
+import { GM_cookie, unsafeWindow } from "$"
 
 // #region 获取异步不变量
 const short_room_id = Number(location.pathname.split("/").pop()?.split("?")[0])
 
-const response = await fetch(
+const room_id = await fetch(
     `https://api.live.bilibili.com/room/v1/Room/room_init?id=${short_room_id}`,
-) // 请求获取长房间号
-const data = await response.json()
-const room_id = data.data.room_id
+)
+    .then((res) => res.json())
+    .then((data) => data.data?.room_id || short_room_id)
+    .catch(() => short_room_id)
 
 type emoticon = {
     descript: string
@@ -84,9 +86,9 @@ emoticon_list.init(room_id)
 const XHR_INTERCEPTED_KEY = Symbol.for("__bili_live_xhr_intercepted__")
 
 // 防止 SPA 导航导致脚本重复执行时，window.XMLHttpRequest 被多次包装
-if (!(window as any)[XHR_INTERCEPTED_KEY]) {
-    ;(window as any)[XHR_INTERCEPTED_KEY] = true
-    const OriginalXHR = window.XMLHttpRequest
+if (!(unsafeWindow as any)[XHR_INTERCEPTED_KEY]) {
+    ;(unsafeWindow as any)[XHR_INTERCEPTED_KEY] = true
+    const OriginalXHR = unsafeWindow.XMLHttpRequest
 
     class ProxiedXHR extends OriginalXHR {
         open(
@@ -111,7 +113,7 @@ if (!(window as any)[XHR_INTERCEPTED_KEY]) {
         }
     }
 
-    window.XMLHttpRequest = ProxiedXHR as any
+    unsafeWindow.XMLHttpRequest = ProxiedXHR as any
 }
 // #endregion
 
@@ -119,10 +121,10 @@ if (!(window as any)[XHR_INTERCEPTED_KEY]) {
 const FETCH_INTERCEPTED_KEY = Symbol.for("__bili_live_fetch_intercepted__")
 
 // 防止 SPA 导航导致脚本重复执行时，window.fetch 被多次包装
-if (!(window as any)[FETCH_INTERCEPTED_KEY]) {
-    ;(window as any)[FETCH_INTERCEPTED_KEY] = true
-    const originalFetch = window.fetch
-    window.fetch = async (...args) => {
+if (!(unsafeWindow as any)[FETCH_INTERCEPTED_KEY]) {
+    ;(unsafeWindow as any)[FETCH_INTERCEPTED_KEY] = true
+    const originalFetch = unsafeWindow.fetch
+    unsafeWindow.fetch = async (...args) => {
         const url = args[0] instanceof Request ? args[0].url : args[0]
         console.log("Intercepted fetch request:", url, args[1])
         const response = await originalFetch(...args)
@@ -192,5 +194,7 @@ waitForElement("#chat-control-panel-vm").then((target) => {
     container.id = "bili-live-helper"
     mount(App, { target: container })
     target.insertAdjacentElement("beforebegin", container)
+}).catch((err) => {
+    console.error("[B站直播表情助手] 挂载失败:", err)
 })
 // #endregion

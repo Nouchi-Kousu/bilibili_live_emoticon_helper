@@ -13,7 +13,7 @@ export default defineConfig({
                 icon: "http://bilibili.com/favicon.ico",
                 namespace: "https://github.com/Nouchi-Kousu/bilibili_live_emoticon_helper",
                 match: ["https://live.bilibili.com/*"],
-                grant: "GM_cookie",
+                grant: ["GM_cookie", "unsafeWindow"],
                 connect: ["api.live.bilibili.com"],
                 description: "B站直播间表情辅助脚本",
                 license: "MIT",
