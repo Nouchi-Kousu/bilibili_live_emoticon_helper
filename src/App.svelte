@@ -1,47 +1,85 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from './assets/vite.svg'
-  import Counter from './lib/Counter.svelte'
+    let favWidth: number = $state(0)
+    let itemWidth: number = $derived((favWidth - 5) / 6 - 5)
+    import { constants } from "./main"
+    import { emoticon_list } from "./utils.svelte"
+    let emoticon_list_with_descript = $derived(
+        emoticon_list.emoticons.map((emoticon) => {
+            return {
+                descript:
+                    constants.emoticon_map.get(emoticon)?.descript ||
+                    "未知表情",
+                url: constants.emoticon_map.get(emoticon)?.url || "",
+                emoticon_unique: emoticon,
+            }
+        }),
+    )
 </script>
 
 <main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+    {#if emoticon_list_with_descript.length > 0}
+        <div
+            id="emoticon-fav"
+            class="emoticon-fav"
+            bind:offsetWidth={favWidth}
+            style="height: {(favWidth - 5) / 6 + 5}px"
+        >
+            {#each emoticon_list_with_descript as emoticon (emoticon.emoticon_unique)}
+                <button
+                    class="emoticon-fav-item"
+                    title={emoticon.descript}
+                    style="width: {itemWidth}px; height: {itemWidth}px;"
+                    id={emoticon.emoticon_unique}
+                    onclick={async () => {
+                        const csrf = constants.csrf
+                        const body = new FormData()
+                        body.append("msg", emoticon.emoticon_unique)
+                        body.append("roomid", String(constants.room_id))
+                        body.append("csrf", csrf)
+                        body.append("csrf_token", csrf)
+                        body.append("color", "16777215")
+                        body.append("mode", "1")
+                        body.append("fontsize", "25")
+                        body.append(
+                            "rnd",
+                            String(Math.floor(Date.now() / 1000)),
+                        )
+                        body.append("room_type", "0")
+                        body.append("bubble", "0")
+                        body.append("dm_type", "1")
+                        fetch("https://api.live.bilibili.com/msg/send", {
+                            method: "POST",
+                            credentials: "include",
+                            body,
+                        })
+                    }}
+                >
+                    <img src={emoticon.url} alt={emoticon.descript} />
+                </button>
+            {/each}
+        </div>
+    {/if}
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
+    .emoticon-fav {
+        background-color: var(--bg1);
+        display: flex;
+        box-sizing: border-box;
+        padding: 5px 0px 0px 5px;
+    }
+
+    .emoticon-fav .emoticon-fav-item {
+        background-color: var(--bg1);
+        margin: 0px 5px 5px 0px;
+        box-sizing: border-box;
+        border: none;
+        padding: 0px;
+        outline: none;
+        cursor: pointer;
+    }
+    .emoticon-fav .emoticon-fav-item img {
+        width: 100%;
+        height: 100%;
+    }
 </style>
