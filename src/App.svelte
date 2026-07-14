@@ -7,8 +7,8 @@
     let emoticon_list_with_descript = $derived(
         emoticon_list.emoticons.map((emoticon) => {
             return {
-                descript:
-                    constants.emoticon_map.get(emoticon)?.descript ||
+                emoji:
+                    constants.emoticon_map.get(emoticon)?.emoji ||
                     "未知表情",
                 url: constants.emoticon_map.get(emoticon)?.url || "",
                 emoticon_unique: emoticon,
@@ -28,7 +28,7 @@
             {#each emoticon_list_with_descript as emoticon (emoticon.emoticon_unique)}
                 <button
                     class="emoticon-fav-item"
-                    title={emoticon.descript}
+                    title={emoticon.emoji}
                     style="width: {itemWidth}px; height: {itemWidth}px;"
                     id={emoticon.emoticon_unique}
                     onclick={async () => {
@@ -55,7 +55,7 @@
                         })
                     }}
                 >
-                    <img src={emoticon.url} alt={emoticon.descript} />
+                    <img src={emoticon.url} alt={emoticon.emoji} />
                 </button>
             {/each}
         </div>

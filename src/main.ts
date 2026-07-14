@@ -13,7 +13,7 @@ const room_id = await fetch(
     .catch(() => short_room_id)
 
 type emoticon = {
-    descript: string
+    emoji: string
     url: string
 }
 
@@ -24,7 +24,7 @@ type emoticonDataResponse = {
     data: {
         data: {
             emoticons: {
-                descript: string
+                emoji: string
                 url: string
                 emoticon_unique: string
             }[]
@@ -55,8 +55,8 @@ const all_emoticon: emoticonDataResponse = await fetch(
     })
 
 for (const { emoticons } of all_emoticon.data.data) {
-    for (const { descript, url, emoticon_unique } of emoticons) {
-        emoticon_map.set(emoticon_unique, { descript, url })
+    for (const { emoji, url, emoticon_unique } of emoticons) {
+        emoticon_map.set(emoticon_unique, { emoji, url })
     }
 }
 
